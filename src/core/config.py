@@ -1,12 +1,10 @@
-# app/config.py
-from __future__ import annotations
 from pathlib import Path
 
 from aiogram.enums import ParseMode
 from pydantic import BaseModel, PostgresDsn, field_validator, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-BASE_DIR = Path(__file__).resolve().parents[2]  # на 2 уровня вверх от app/config.py -> корень проекта
+BASE_DIR = Path(__file__).resolve().parents[3]
 
 
 # ========== NESTED CONFIGS ==========
@@ -77,7 +75,9 @@ class WebConfig(BaseModel):
 
     def get_webhook_url(self) -> str:
         base = self.base_url.rstrip("/")
-        path = self.main_path if self.main_path.startswith("/") else f"/{self.main_path}"
+        path = (
+            self.main_path if self.main_path.startswith("/") else f"/{self.main_path}"
+        )
         return f"{base}{path}"
 
 
@@ -87,6 +87,7 @@ class Settings(BaseSettings):
     Загружает переменные из ENV и .env с вложенными префиксами.
     Пример: BOT_CONFIG__BOT__TOKEN=... -> settings.bot.token
     """
+
     model_config = SettingsConfigDict(
         case_sensitive=False,
         env_file=(str(BASE_DIR / ".env"),),
