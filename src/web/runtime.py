@@ -6,11 +6,11 @@ from redis.asyncio import Redis
 from typing import Optional
 
 from core.config import settings
-from utils.logging import setup_logger
+from utils.logger import setup_logging
 from routers import register_routers
 from utils.scheduler import schedule_tasks
 
-logger = setup_logger(__name__)
+logger = setup_logging(__name__)
 
 
 class Runtime:

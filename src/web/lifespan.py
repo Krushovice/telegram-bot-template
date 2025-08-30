@@ -1,13 +1,13 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from aiogram import Dispatcher
-from app.core.runtime import runtime
-from app.core.config import settings
-from app.core.logging import setup_logger
-from app.storage.db import session_factory, test_connection
-from app.middlewares.db_session import DbSessionMiddleware
 
-logger = setup_logger(__name__)
+from web.runtime import runtime
+from core.config import settings
+from utils.logger import setup_logging
+from core.storage.db_helper import db_helper, test_connection
+from middlewares import DbSessionMiddleware, LoggingContextMiddleware
+
+logger = setup_logging(__name__)
 
 
 @asynccontextmanager
@@ -35,11 +35,16 @@ async def lifespan(app: FastAPI):
     )
 
     # DB ping
-    async with session_factory() as s:
+    async with db_helper.session_factory() as s:
         await test_connection(s)
 
     # Aiogram DB middleware
-    dp.update.outer_middleware(DbSessionMiddleware(session_pool=session_factory))
+    dp.update.outer_middleware(
+        DbSessionMiddleware(session_pool=db_helper.session_factory)
+    )
+
+    # loging_ctx
+    dp.update.outer_middleware(LoggingContextMiddleware())
 
     # Планировщик
     runtime.scheduler.start()

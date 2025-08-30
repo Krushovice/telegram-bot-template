@@ -14,8 +14,12 @@ async def telegram_webhook(request: Request):
         got = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
         if got != expected:
             raise HTTPException(status_code=401, detail="Invalid webhook secret")
-
+    rid = request.headers.get("X-Request-ID")
     payload = await request.json()
     update = Update.model_validate(payload, context={"bot": runtime.bot})
-    await runtime.dp.feed_update(bot=runtime.bot, update=update)
+    await runtime.dp.feed_update(
+        bot=runtime.bot,
+        update=update,
+        request_id=rid,
+    )
     return {"ok": True}
